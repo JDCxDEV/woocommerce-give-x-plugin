@@ -201,12 +201,12 @@ function submit_form(WP_REST_Request  $request) {
 
         $amount = $params['cart_total'] >= $amount ? $amount : $params['cart_total'];
 
-        // $check_if_has_pre_auth = get_pre_auth_row();
+        $check_if_has_pre_auth = get_pre_auth_row();
 
-        // if ($check_if_has_pre_auth)  {
-        //     $pre_auth = $check_if_has_pre_auth;
-        //     give_x_post_auth($params['gift_card_code'], $pre_auth->givex_pre_auth_reference, "0.00");
-        // }
+        if ($check_if_has_pre_auth)  {
+            $pre_auth = $check_if_has_pre_auth;
+            give_x_post_auth($params['gift_card_code'], $pre_auth->givex_pre_auth_reference, "0.00");
+        }
 
         $init_pre_auth = give_x_pre_auth($params['gift_card_code'], $amount);
 
