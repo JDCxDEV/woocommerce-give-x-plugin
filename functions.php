@@ -66,12 +66,9 @@ function give_x_pre_auth($code, $amount) {
 
 function give_x_post_auth($code, $ref, $amount) {
     try {
-        
         $result = null;
-
         $method = 'dc_921';
-
-        $trans_code = 'sparkpop-12AAT';
+        $trans_code = generateRandomId();
 
         $default_params = [
             $GLOBALS['LANG'],
@@ -85,19 +82,22 @@ function give_x_post_auth($code, $ref, $amount) {
 
         $pre_auth_redeem_code = call_give_x_api_post($method, $default_params, 15);
 
-        if(!$pre_auth_redeem_code) {
+        if (!$pre_auth_redeem_code) {
             $pre_auth_redeem_code = call_give_x_api_post($method, $default_params, 15, null, true);
             return [
                 'transaction_code' => $trans_code,
-                'message' => 'something went wrong, please try again!',
+                'message' => 'Something went wrong, please try again!',
                 'result' => 'wp_error',
                 'post_auth_redeem_code' =>  $pre_auth_redeem_code
             ];
         }
 
-        if($pre_auth_redeem_code['givex_pre_auth_reference'] == "Invalid security code" || $pre_auth_redeem_code['givex_pre_auth_reference'] == "Cert not exist" || $pre_auth_redeem_code['givex_pre_auth_reference'] == "ERR  bal=$0.00") {
-
-            if($pre_auth_redeem_code['givex_pre_auth_reference'] == "ERR  bal=$0.00") {
+        if (
+            $pre_auth_redeem_code['givex_pre_auth_reference'] == "Invalid security code" ||
+            $pre_auth_redeem_code['givex_pre_auth_reference'] == "Cert not exist" ||
+            $pre_auth_redeem_code['givex_pre_auth_reference'] == "ERR  bal=$0.00"
+        ) {
+            if ($pre_auth_redeem_code['givex_pre_auth_reference'] == "ERR  bal=$0.00") {
                 $pre_auth_redeem_code['givex_pre_auth_reference'] = 'Coupon has a $0.00 balance';
             }
 
@@ -105,7 +105,7 @@ function give_x_post_auth($code, $ref, $amount) {
                 'message' => $pre_auth_redeem_code['givex_pre_auth_reference'],
                 'result' => false,
             ];
-        }else {
+        } else {
             $result = [
                 'transaction_code' => $trans_code,
                 'message' => $pre_auth_redeem_code,
@@ -114,8 +114,7 @@ function give_x_post_auth($code, $ref, $amount) {
             ];
         }
 
-
-       return $result;
+        return $result;
 
     } catch (Exception $e) {
         print_r($e);
