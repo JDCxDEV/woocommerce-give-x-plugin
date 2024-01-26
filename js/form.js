@@ -2,7 +2,7 @@ jQuery(document).ready(function ($) {
 
     /* Global Variables */
 
-    let host = window.location.origin + '/sparkpop';
+    let host = window.location.origin + '/give-x';
 
     let apiUrlGiveXRedeem =  host + "/wp-json/api/v1/give-x-submit-form";
     let apiUrlGiveXRemove =  host + "/wp-json/api/v1/give-x-remove-code";
@@ -11,7 +11,7 @@ jQuery(document).ready(function ($) {
     
     $( document ).on( 'click', 'a.give-x-show-giftcard', show_gift_card_form );
 
-    $( document ).on( 'click', 'button.sparkpop-prv', hide_forms );
+    $( document ).on( 'click', 'button.give-x-prv', hide_forms );
 
     $( document ).on( 'click', 'button.other-prv', hide_forms ); 
 

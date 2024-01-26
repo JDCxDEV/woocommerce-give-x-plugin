@@ -458,7 +458,7 @@ function generateRandomId() {
         $randomString .= $characters[$index];
     }
     
-    return 'sparkpop-' . $randomString;
+    return 'give-x-' . $randomString;
 }
 
 

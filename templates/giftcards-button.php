@@ -1,5 +1,5 @@
 <div class="giftcards-buttons">
-    <button class="button button--gift-card sparkpop-prv coupon-active" onclick="toggleGiftCard('sparkpop')">
+    <button class="button button--gift-card give-x-prv coupon-active" onclick="toggleGiftCard('give-x')">
         Spark Pop gift card
     </button>
 
@@ -36,7 +36,7 @@
 
 
     @media (max-width: 600px) {
-        .sparkpop-prv {
+        .give-x-prv {
             width: 100%;
             margin-bottom: 12px;
         }
@@ -49,21 +49,21 @@
 
 <script>
     function toggleGiftCard(provider, button) {
-        const sparkpopButton = document.querySelector('.sparkpop-prv');
+        const give-xButton = document.querySelector('.give-x-prv');
         const otherProviderButton = document.querySelector('.other-prv');
 
         var hideElements, showElements, activeButton, inactiveButton;
 
-        if (provider === 'sparkpop') {
+        if (provider === 'give-x') {
             hideElements = document.querySelectorAll('.givex-have-a-code');
             showElements = document.querySelectorAll('.ywgc_have_code');
-            activeButton = sparkpopButton;
+            activeButton = give-xButton;
             inactiveButton = otherProviderButton;
         } else {
             hideElements = document.querySelectorAll('.ywgc_have_code');
             showElements = document.querySelectorAll('.givex-have-a-code');
             activeButton = otherProviderButton;
-            inactiveButton = sparkpopButton;
+            inactiveButton = give-xButton;
         }
 
         hideElements.forEach(function(element) {
