@@ -29,9 +29,11 @@ Or download the ZIP file and extract it.
 
 
 * Upload the plugin directory to the /wp-content/plugins/ directory on your WordPress site.
+
 **Activation:**
 
 * Activate the plugin through the 'Plugins' menu in WordPress.
+
 **Configuration:**
 
 * Navigate to WooCommerce settings and find the Give-X Plugin section.
