@@ -126,7 +126,7 @@ function give_x_check_balance($code, $pin) {
         $method = 'dc_994';
 
         $trans_code = generateRandomId();
-        
+
         $default_params = [
             $GLOBALS['LANG'],
             $trans_code,
@@ -138,44 +138,42 @@ function give_x_check_balance($code, $pin) {
 
         $secure_balance = call_give_x_api_post($method, $default_params, 15, "50104");
 
-        if(!$secure_balance) {
+        if (!$secure_balance) {
             return [
                 'transaction_code' => $trans_code,
-                'message' => 'something went wrong, please try again!',
+                'message' => 'Something went wrong, please try again!',
                 'result' => 'wp_error'
             ];
         }
 
-        if ($secure_balance['certificate_balance_or_error_message'] == "Invalid security code" || 
-            $secure_balance['certificate_balance_or_error_message'] ==  "Cert not exist" || 
+        $error_msg = "Gift Card information is invalid";
+
+        if (in_array($secure_balance['certificate_balance_or_error_message'], ["Cert not exist", "Invalid security code"], true)) {
+            $error_msg = "Gift Card information doesn't exist. Please check your card code and pin";
+        }
+
+        if ($secure_balance['certificate_balance_or_error_message'] == "0.00") {
+            $error_msg = "Gift Card amount is equivalent to $0.00";
+        }
+
+        if (
+            $secure_balance['certificate_balance_or_error_message'] == "Invalid security code" ||
+            $secure_balance['certificate_balance_or_error_message'] ==  "Cert not exist" ||
             $secure_balance['certificate_balance_or_error_message'] ==  "0.00" ||
             $secure_balance['certificate_balance_or_error_message'] == "Invalid user ID/pswd"
         ) {
-
-            $error_msg = "Gift Card information is invalid";
-
-            if (in_array($secure_balance['certificate_balance_or_error_message'], ["Cert not exist", "Invalid security code"], true)) {
-                $error_msg = "Gift Card information doesn't exist. Please check your card code and pin";
-            }
-
-            if ($secure_balance['certificate_balance_or_error_message'] == "0.00") {
-                $error_msg = "Gift Card amount is equivalent to $0.00";
-            }
-
             return [
                 'transaction_code' => $trans_code,
                 'message' =>  $error_msg,
                 'data' =>  $secure_balance,
                 'result' => false
             ];
-
         } else {
             return ['data' => $secure_balance, 'result' => true];
         }
-
     } catch (Exception $e) {
         return [
-            'message' => 'something went wrong, please try again!',
+            'message' => 'Something went wrong, please try again!',
             'success' => false,
         ];
     }
