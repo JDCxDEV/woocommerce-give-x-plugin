@@ -66,7 +66,6 @@ function give_x_pre_auth($code, $amount) {
 
 function give_x_post_auth($code, $ref, $amount) {
     try {
-        $result = null;
         $method = 'dc_921';
         $trans_code = generateRandomId();
 
@@ -92,21 +91,19 @@ function give_x_post_auth($code, $ref, $amount) {
             ];
         }
 
-        if (
-            $pre_auth_redeem_code['givex_pre_auth_reference'] == "Invalid security code" ||
-            $pre_auth_redeem_code['givex_pre_auth_reference'] == "Cert not exist" ||
-            $pre_auth_redeem_code['givex_pre_auth_reference'] == "ERR  bal=$0.00"
-        ) {
-            if ($pre_auth_redeem_code['givex_pre_auth_reference'] == "ERR  bal=$0.00") {
-                $pre_auth_redeem_code['givex_pre_auth_reference'] = 'Coupon has a $0.00 balance';
+        $reference = $pre_auth_redeem_code['givex_pre_auth_reference'];
+
+        if (in_array($reference, ["Invalid security code", "Cert not exist", "ERR  bal=$0.00"])) {
+            if ($reference == "ERR  bal=$0.00") {
+                $reference = 'Coupon has a $0.00 balance';
             }
 
-            $result = [
-                'message' => $pre_auth_redeem_code['givex_pre_auth_reference'],
+            return [
+                'message' => $reference,
                 'result' => false,
             ];
         } else {
-            $result = [
+            return [
                 'transaction_code' => $trans_code,
                 'message' => $pre_auth_redeem_code,
                 'data' => $pre_auth_redeem_code,
@@ -114,10 +111,8 @@ function give_x_post_auth($code, $ref, $amount) {
             ];
         }
 
-        return $result;
-
     } catch (Exception $e) {
-        print_r($e);
+        error_log('Error in give_x_post_auth: ' . $e->getMessage());
     }
 }
 
