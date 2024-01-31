@@ -1,109 +1,77 @@
 jQuery(document).ready(function ($) {
 
     /* Global Variables */
-
     let host = window.location.origin + '/give-x';
-
-    let apiUrlGiveXRedeem =  host + "/wp-json/api/v1/give-x-submit-form";
-    let apiUrlGiveXRemove =  host + "/wp-json/api/v1/give-x-remove-code";
-
+    let apiUrlGiveXRedeem = host + "/wp-json/api/v1/give-x-submit-form";
+    let apiUrlGiveXRemove = host + "/wp-json/api/v1/give-x-remove-code";
+    const giveXEnterCode = $('.give-x-enter-code');
+    const respondBlock = $('.respond-block');
+    const applyGiftCardButton = $('#apply_gift_card_button');
+    
     $('tr.fee:contains("GiveX Coupon")').hide();
     
-    $( document ).on( 'click', 'a.give-x-show-giftcard', show_gift_card_form );
+    $(document).on('click', 'a.give-x-show-giftcard', show_gift_card_form);
+    $(document).on('click', 'button.give-x-prv, button.other-prv', hide_forms);
 
-    $( document ).on( 'click', 'button.give-x-prv', hide_forms );
-
-    $( document ).on( 'click', 'button.other-prv', hide_forms ); 
-
+    applyGiftCardButton.on('click', handleApplyGiftCard);
 
     function hide_forms() {
-        var giveXEnterCode = $('.give-x-enter-code');
-        var ywgcEnterCode = $('.ywgc_enter_code');
-    
-        // Check if either element is visible
-        if (giveXEnterCode.is(':visible') || ywgcEnterCode.is(':visible')) {
-            // Hide both elements
-            giveXEnterCode.hide(300);
-            ywgcEnterCode.hide(300, function () {
-                // After hiding, focus on the first input inside the element with ID 'gift_card_code'
+        if (giveXEnterCode.is(':visible')) {
+            giveXEnterCode.hide(300, function () {
                 $('#gift_card_code').find(':input:eq(0)').focus();
             });
         } else {
-            // If none of them is visible, just focus on the input without toggling
             $('#gift_card_code').find(':input:eq(0)').focus();
         }
-    
-        // Prevent the default behavior of the anchor tag (e.g., navigating to a URL)
         return false;
     }
-
 
     function show_gift_card_form() {
-        $( '.give-x-enter-code' ).slideToggle(
-            300,
-            function() {
-                $( '#gift_card_code' ).find( ':input:eq( 0 )' ).focus();
-            }
-        );
+        giveXEnterCode.slideToggle(300, function () {
+            $('#gift_card_code').find(':input:eq(0)').focus();
+        });
         return false;
     }
 
-    const applyGiftCardButton = document.getElementById('apply_gift_card_button');
+    function block($node) {
+        $node.addClass('processing').block({
+            message: null,
+            overlayCSS: {
+                background: '#fff',
+                opacity: 0.6
+            }
+        });
+    }
 
-	/**
-	 * Update the cart after something has changed.
-	 */
+    function update_cart_totals() {
+        block($('div.cart_totals'));
 
+        $.ajax({
+            url: host + '/?wc-ajax=get_cart_totals',
+            dataType: 'html',
+            success: function (response) {
+                $('div.cart_totals').replaceWith(response);
+                $('tr.fee:contains("GiveX Coupon")').hide();
+                initializeGiveX();
+            }
+        });
 
-    var block = function($node) {
-		$node.addClass( 'processing' ).block(
-			{
-				message: null,
-				overlayCSS: {
-					background: '#fff',
-					opacity: 0.6
-				}
-			}
-		);
-	};
+        $(document.body).trigger('update_checkout');
+    }
 
-    
-	function update_cart_totals() {
-		block( $( 'div.cart_totals' ) );
-
-		$.ajax(
-			{
-				url: host + '/?wc-ajax=get_cart_totals',
-				dataType: 'html',
-				success: function(response) {
-					$( 'div.cart_totals' ).replaceWith( response );
-                    $('tr.fee:contains("GiveX Coupon")').hide();
-                    initializeGiveX();
-				}
-			}
-		);
-
-		$( document.body ).trigger( 'update_checkout' )
-    
-	}
-
-    applyGiftCardButton.addEventListener('click', function () {
-
+    function handleApplyGiftCard() {
         const cardCode = $('#gift_card_code').val();
         const cardPin = $('#gift_card_pin').val();
         const cartTotal = $('#total_cart_value').val();
 
-        const respondBlock = $('.respond-block');
-
         if (!cardCode.length || !cardPin.length) {
-            respondBlock.html('<p class="error-message">Card code and pin is required.</p>');
+            respondBlock.html('<p class="error-message">Card code and pin are required.</p>');
             return;
         }
 
         respondBlock.html('');
 
-        applyGiftCardButton.innerHTML = '<i class="fas fa-circle-notch fa-spin loading-indicator"></i> Apply Gift Card';
-        applyGiftCardButton.disabled = true;
+        applyGiftCardButton.html('<i class="fas fa-circle-notch fa-spin loading-indicator"></i> Apply Gift Card').prop('disabled', true);
 
         $.ajax({
             url: apiUrlGiveXRedeem,
@@ -114,45 +82,39 @@ jQuery(document).ready(function ($) {
                 cart_total: cartTotal,
             },
             success: function (response) {
-                // Handle the success response
                 if (!response.success) {
                     respondBlock.html(`<p class="error-message">${response.message}.</p>`);
-                }else {
-                    update_cart_totals()
+                } else {
+                    update_cart_totals();
                     respondBlock.html(`<p class="success-message">${response.message}</p>`);
                 }
-
             },
             error: function (error) {
-                // Handle errors
                 console.error('Error:', error);
             },
             complete: function () {
-                applyGiftCardButton.disabled = false;
-                applyGiftCardButton.innerHTML = 'Apply Gift Card';
+                applyGiftCardButton.prop('disabled', false).html('Apply Gift Card');
             }
         });
-    });
+    }
 
     function initializeGiveX() {
-        $('#give-x-coupon').on('click', function() {
-            var dataCodeValue = $(this).data('code');
-            $(this).innerHTML = '<i class="fas fa-circle-notch fa-spin loading-indicator"></i> Remove';
-            $(this).prop('disabled', true);
-            
+        $('#give-x-coupon').on('click', function () {
+            const dataCodeValue = $(this).data('code');
+            $(this).html('<i class="fas fa-circle-notch fa-spin loading-indicator"></i> Remove').prop('disabled', true);
+
             $.ajax({
                 type: 'POST',
                 url: apiUrlGiveXRemove,
-                data: { code: dataCodeValue},
-                success: function() {
+                data: { code: dataCodeValue },
+                success: function () {
                     update_cart_totals();
                 },
-                error: function(error) {
+                error: function (error) {
                     console.error('Error:', error);
                 },
                 complete: function () {
-                    $(this).prop('disabled', false);
-                    $(this).innerHTML = 'Remove';
+                    $(this).prop('disabled', false).html('Remove');
                 }
             });
         });
@@ -160,17 +122,11 @@ jQuery(document).ready(function ($) {
 
     initializeGiveX();
 
-
-    var elements = document.querySelectorAll('.givex-have-a-code');
-
-    elements.forEach(function(element) {
-        // Hide the element with class "givex-have-a-code"
-        element.style.display = 'none';
-
-        // Hide the parent element with class "woocommerce-info"
-        var parentElement = element.closest('.woocommerce-info');
+    $('.givex-have-a-code').each(function () {
+        $(this).hide();
+        const parentElement = $(this).closest('.woocommerce-info');
         if (parentElement) {
-            parentElement.style.display = 'none';
+            parentElement.hide();
         }
     });
 });
